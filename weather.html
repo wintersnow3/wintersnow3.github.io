@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>天气</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com">
+    </script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#1976D2' },
+                    animation: {
+                        'slide-up': 'slideUp 0.35s cubic-bezier(0.32, 0.72, 0, 1) forwards',
+                        'fade-in': 'fadeIn 0.25s ease-out forwards',
+                    },
+                    keyframes: {
+                        slideUp: { '0%': { transform: 'translateY(100%)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                    },
+                },
+            }
+        }
+    </script>
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .glass-card {
+            position: relative;
+            background: linear-gradient(145deg,
+                    rgba(255, 255, 255, 0.22) 0%,
+                    rgba(255, 255, 255, 0.06) 60%,
+                    rgba(255, 255, 255, 0.02) 100%);
+            backdrop-filter: blur(28px) saturate(1.3);
+            -webkit-backdrop-filter: blur(28px) saturate(1.3);
+            border: 1px solid rgba(255, 255, 255, 0.30);
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.10),
+                inset 0 1px 0 rgba(255, 255, 255, 0.40),
+                inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+            transition: box-shadow 0.4s ease;
+        }
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.60), transparent);
+            border-radius: 100%;
+            filter: blur(1px);
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        .glass-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 20%;
+            right: 20%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+            pointer-events: none;
+        }
+        .glass-aqi {
+            background: linear-gradient(145deg,
+                    rgba(255, 255, 255, 0.18) 0%,
+                    rgba(255, 255, 255, 0.05) 80%);
+            backdrop-filter: blur(24px) saturate(1.2);
+            -webkit-backdrop-filter: blur(24px) saturate(1.2);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow:
+                0 6px 24px rgba(0, 0, 0, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.35);
+            transition: all 0.3s ease;
+        }
+        .glass-btn {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(20px) saturate(1.2);
+            -webkit-backdrop-filter: blur(20px) saturate(1.2);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.30);
+            transition: all 0.25s ease;
+        }
+        .glass-btn:active {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(0.94);
+        }
+        .glass-sheet {
+            background: linear-gradient(170deg,
+                    rgba(255, 255, 255, 0.88) 0%,
+                    rgba(255, 255, 255, 0.78) 100%);
+            backdrop-filter: blur(40px) saturate(1.4);
+            -webkit-backdrop-filter: blur(40px) saturate(1.4);
+            border: 1px solid rgba(255, 255, 255, 0.50);
+            box-shadow: 0 -8px 48px rgba(0, 0, 0, 0.12);
+        }
+        #tempLinePath {
+            filter: drop-shadow(0 0 6px rgba(255, 206, 0, 0.30));
+        }
+        .hour-item:active {
+            transform: scale(0.94);
+        }
+        .current-dot {
+            animation: dotPulse 1.8s ease-in-out infinite;
+        }
+        @keyframes dotPulse {
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 206, 0, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 0 8px rgba(255, 206, 0, 0);
+            }
+        }
+        .forecast-row:active {
+            background: rgba(255, 255, 255, 0.08);
+            transform: scale(0.98);
+        }
+        .glass-toast {
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(20px) saturate(1.2);
+            -webkit-backdrop-filter: blur(20px) saturate(1.2);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.20);
+        }
+        .glass-select {
+            background: rgba(255, 255, 255, 0.50);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.40);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.60);
+        }
+        .glass-select:focus {
+            border-color: rgba(255, 255, 255, 0.70);
+            box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.60);
+        }
+        .temp-glow {
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.12);
+        }
+        @keyframes breathe {
+            0%, 100% {
+                text-shadow: 0 0 20px rgba(255, 255, 255, 0.15),
+                             0 0 40px rgba(255, 255, 255, 0.05);
+            }
+            50% {
+                text-shadow: 0 0 40px rgba(255, 255, 255, 0.50),
+                             0 0 80px rgba(255, 255, 255, 0.25),
+                             0 0 120px rgba(255, 255, 255, 0.10);
+            }
+        }
+        .breathing {
+            animation: breathe 3s ease-in-out infinite;
+        }
+        .bg-weather {
+            background: linear-gradient(165deg, #0D47A1 0%, #1565C0 35%, #1A73E8 70%, #0D47A1 100%);
+            background-attachment: fixed;
+        }
+        .bg-weather::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 20% 50%, rgba(255, 255, 255, 0.04) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, rgba(255, 255, 255, 0.03) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .bg-weather>* {
+            position: relative;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body class="font-sans">
+
+    <div class="relative max-w-[430px] mx-auto min-h-screen overflow-hidden bg-weather text-white">
+
+        <main class="pt-8 px-4 pb-6 h-screen overflow-y-auto scrollbar-hide relative z-10">
+
+            <div class="text-center relative mb-8">
+                <h1 id="cityName" class="text-[42px] font-bold mb-1 tracking-tight temp-glow">北京</h1>
+                <p id="dateText" class="text-white/80 text-sm mb-1 font-light">--</p>
+                <p id="updateTip" class="text-white/70 text-xs font-light">加载中...</p>
+                <button id="citySelectBtn" class="absolute top-0 right-0 w-10 h-10 flex items-center justify-center rounded-full glass-btn transition-all">
+                    <span class="material-icons text-white/90 text-[22px]">location_on</span>
+                </button>
+            </div>
+
+            <div class="text-center mb-8">
+                <div id="currentTemp" class="text-[96px] font-bold leading-none mb-2 temp-glow tracking-tight breathing">--°</div>
+                <div class="flex items-center justify-center gap-4 mb-6 flex-wrap">
+                    <div id="weatherDesc" class="text-2xl font-medium flex items-center gap-2">
+                        <span class="material-icons text-3xl" id="weatherIcon">wb_sunny</span>
+                        <span>--</span>
+                    </div>
+                    <div id="todayTempRange" class="text-xl font-medium text-white/80">--° / --°</div>
+                </div>
+                <div class="flex items-center justify-center gap-2 text-sm text-white/80 flex-wrap">
+                    <span id="feelsLike">体感温度 --°</span>
+                    <span class="hidden xs:inline">·</span>
+                    <span id="windInfo">--</span>
+                    <span class="hidden xs:inline">·</span>
+                    <span id="humidity">湿度 --%</span>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <div id="aqiCard" class="w-full rounded-full py-3.5 text-center font-semibold text-white glass-aqi transition-all duration-300">
+                    AQI -- · --
+                </div>
+            </div>
+
+            <div class="glass-card rounded-[28px] p-6 pt-10 pb-8 mb-4">
+                <h2 class="text-lg font-semibold mb-8 flex items-center gap-2">
+                    <span class="material-icons text-xl">schedule</span>
+                    24小时预报
+                </h2>
+                <div class="w-full overflow-x-auto scrollbar-hide touch-pan-x" id="hourlyScrollContainer">
+                    <div class="relative min-w-[1200px] h-[220px]" id="hourlyContainer">
+                        <svg class="absolute top-[25px] left-0 w-full h-[60px] overflow-visible" id="tempLineSvg">
+                            <path id="tempLinePath" fill="none" stroke="#FFCE00" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="" />
+                        </svg>
+                        <div class="absolute top-0 left-0 w-full h-full flex justify-between" id="hourlyList"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-[28px] p-6 mb-4">
+                <h2 class="text-lg font-semibold mb-6 flex items-center gap-2">
+                    <span class="material-icons text-xl">today</span>
+                    今日气象要素
+                </h2>
+                <div class="grid grid-cols-2 gap-y-8">
+                    <div>
+                        <p class="text-white/70 text-sm mb-1 flex items-center gap-1">
+                            <span class="material-icons text-[18px]">wb_twilight</span> 日出
+                        </p>
+                        <p id="sunrise" class="text-xl font-bold">--:--</p>
+                    </div>
+                    <div>
+                        <p class="text-white/70 text-sm mb-1 flex items-center gap-1">
+                            <span class="material-icons text-[18px]">nightlight</span> 日落
+                        </p>
+                        <p id="sunset" class="text-xl font-bold">--:--</p>
+                    </div>
+                    <div>
+                        <p class="text-white/70 text-sm mb-1 flex items-center gap-1">
+                            <span class="material-icons text-[18px]">compress</span> 气压
+                        </p>
+                        <p id="pressure" class="text-xl font-bold">-- hPa</p>
+                    </div>
+                    <div>
+                        <p class="text-white/70 text-sm mb-1 flex items-center gap-1">
+                            <span class="material-icons text-[18px]">wb_sunny</span> 紫外线
+                        </p>
+                        <p id="uvIndex" class="text-xl font-bold">--级</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-[28px] p-6 mb-6">
+                <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <span class="material-icons text-xl">calendar_today</span>
+                    未来7日预报
+                </h2>
+                <div id="forecastContainer" class="space-y-3">
+                    <div class="text-center text-white/60 py-4">加载中...</div>
+                </div>
+            </div>
+
+            <div class="text-center text-white/40 text-xs pb-8 space-y-1 font-light">
+                <p>数据来源：Open-Meteo</p>
+                <p>Copyright © 2026 冬雪社. All rights reserved.</p>
+            </div>
+        </main>
+
+        <div id="citySheet" class="fixed inset-0 bg-black/25 backdrop-blur-sm z-50 hidden items-end justify-center animate-fade-in">
+            <div class="glass-sheet rounded-t-[32px] w-full max-w-[430px] p-6 pb-10 animate-slide-up">
+                <div class="w-12 h-1 bg-gray-300/60 rounded-full mx-auto mb-5"></div>
+                <h2 class="text-center text-lg font-semibold text-gray-800 mb-5">选择城市</h2>
+                <div class="mb-4">
+                    <label class="text-sm text-gray-600 block mb-1.5 font-medium">省级行政区</label>
+                    <select id="provinceSelect" class="w-full glass-select rounded-xl p-3 outline-none transition-all text-gray-800 appearance-none">
+                        <option value="">请选择省级行政区</option>
+                    </select>
+                </div>
+                <div class="mb-6">
+                    <label class="text-sm text-gray-600 block mb-1.5 font-medium">请选择城市</label>
+                    <select id="citySelect" class="w-full glass-select rounded-xl p-3 outline-none transition-all text-gray-800 appearance-none">
+                        <option value="">请先选择省级行政区</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-3">
+                    <button id="confirmCityBtn" class="w-full bg-primary/90 backdrop-blur-sm text-white rounded-xl py-3.5 font-semibold hover:bg-primary active:bg-primary/80 transition-all border border-white/20 shadow-lg shadow-primary/20">
+                        确认
+                    </button>
+                    <button id="closeSheetBtn" class="w-full bg-white/60 backdrop-blur-md text-gray-700 rounded-xl py-3.5 font-semibold hover:bg-white/80 active:bg-white/90 transition-all border border-white/50">
+                        取消
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="errorToast" class="fixed bottom-8 left-1/2 -translate-x-1/2 text-white px-6 py-3.5 rounded-full z-50 hidden animate-fade-in glass-toast pointer-events-none">
+            <span class="flex items-center gap-2">
+                <span class="material-icons text-[20px]">error_outline</span>
+                数据加载失败，请检查网络后重试
+            </span>
+        </div>
+    </div>
+
+    <script>
+        const provinceCityData = [
+            { name: '北京', cities: ['北京'] }, { name: '天津', cities: ['天津'] },
+            { name: '河北', cities: ['石家庄', '唐山', '秦皇岛', '邯郸', '邢台', '保定', '张家口', '承德', '沧州', '廊坊', '衡水'] },
+            { name: '山西', cities: ['太原', '大同', '阳泉', '长治', '晋城', '朔州', '晋中', '运城', '忻州', '临汾', '吕梁'] },
+            { name: '内蒙古', cities: ['呼和浩特', '包头', '乌海', '赤峰', '通辽', '鄂尔多斯', '呼伦贝尔', '巴彦淖尔', '乌兰察布', '兴安盟',
+                    '锡林郭勒盟', '阿拉善盟'
+                ] },
+            { name: '辽宁', cities: ['沈阳', '大连', '鞍山', '抚顺', '本溪', '丹东', '锦州', '营口', '阜新', '辽阳', '盘锦', '铁岭', '朝阳',
+                    '葫芦岛'
+                ] },
+            { name: '吉林', cities: ['长春', '吉林', '四平', '辽源', '通化', '白山', '松原', '白城', '延边朝鲜族自治州'] },
+            { name: '黑龙江', cities: ['哈尔滨', '齐齐哈尔', '鸡西', '鹤岗', '双鸭山', '大庆', '伊春', '佳木斯', '七台河', '牡丹江', '黑河', '绥化',
+                    '大兴安岭地区'
+                ] },
+            { name: '上海', cities: ['上海'] },
+            { name: '江苏', cities: ['南京', '无锡', '徐州', '常州', '苏州', '南通', '连云港', '淮安', '盐城', '扬州', '镇江', '泰州', '宿迁'] },
+            { name: '浙江', cities: ['杭州', '宁波', '温州', '嘉兴', '湖州', '绍兴', '金华', '衢州', '舟山', '台州', '丽水'] },
+            { name: '安徽', cities: ['合肥', '芜湖', '蚌埠', '淮南', '马鞍山', '淮北', '铜陵', '安庆', '黄山', '滁州', '阜阳', '宿州', '六安',
+                    '亳州', '池州', '宣城'
+                ] },
+            { name: '福建', cities: ['福州', '厦门', '莆田', '三明', '泉州', '漳州', '南平', '龙岩', '宁德'] },
+            { name: '江西', cities: ['南昌', '景德镇', '萍乡', '九江', '新余', '鹰潭', '赣州', '吉安', '宜春', '抚州', '上饶'] },
+            { name: '山东', cities: ['济南', '青岛', '淄博', '枣庄', '东营', '烟台', '潍坊', '济宁', '泰安', '威海', '日照', '临沂', '德州',
+                    '聊城', '滨州', '菏泽'
+                ] },
+            { name: '河南', cities: ['郑州', '开封', '洛阳', '平顶山', '安阳', '鹤壁', '新乡', '焦作', '濮阳', '许昌', '漯河', '三门峡', '南阳',
+                    '商丘', '信阳', '周口', '驻马店'
+                ] },
+            { name: '湖北', cities: ['武汉', '黄石', '十堰', '宜昌', '襄阳', '鄂州', '荆门', '孝感', '荆州', '黄冈', '咸宁', '随州',
+                    '恩施土家族苗族自治州'
+                ] },
+            { name: '湖南', cities: ['长沙', '株洲', '湘潭', '衡阳', '邵阳', '岳阳', '常德', '张家界', '益阳', '郴州', '永州', '怀化', '娄底',
+                    '湘西土家族苗族自治州'
+                ] },
+            { name: '广东', cities: ['广州', '韶关', '深圳', '珠海', '汕头', '佛山', '江门', '湛江', '茂名', '肇庆', '惠州', '梅州', '汕尾',
+                    '河源', '阳江', '清远', '东莞', '中山', '潮州', '揭阳', '云浮'
+                ] },
+            { name: '广西', cities: ['南宁', '柳州', '桂林', '梧州', '北海', '防城港', '钦州', '贵港', '玉林', '百色', '贺州', '河池', '来宾',
+                    '崇左'
+                ] },
+            { name: '海南', cities: ['海口', '三亚', '三沙', '儋州'] }, { name: '重庆', cities: ['重庆'] },
+            { name: '四川', cities: ['成都', '自贡', '攀枝花', '泸州', '德阳', '绵阳', '广元', '遂宁', '内江', '乐山', '南充', '眉山', '宜宾',
+                    '广安', '达州', '雅安', '巴中', '资阳', '阿坝藏族羌族自治州', '甘孜藏族自治州', '凉山彝族自治州'
+                ] },
+            { name: '贵州', cities: ['贵阳', '六盘水', '遵义', '安顺', '毕节', '铜仁', '黔西南布依族苗族自治州', '黔东南苗族侗族自治州',
+                    '黔南布依族苗族自治州'
+                ] },
+            { name: '云南', cities: ['昆明', '曲靖', '玉溪', '保山', '昭通', '丽江', '普洱', '临沧', '楚雄彝族自治州', '红河哈尼族彝族自治州',
+                    '文山壮族苗族自治州', '西双版纳傣族自治州', '大理白族自治州', '德宏傣族景颇族自治州', '怒江傈僳族自治州', '迪庆藏族自治州'
+                ] },
+            { name: '西藏', cities: ['拉萨', '日喀则', '昌都', '林芝', '山南', '那曲', '阿里地区'] },
+            { name: '陕西', cities: ['西安', '铜川', '宝鸡', '咸阳', '渭南', '延安', '汉中', '榆林', '安康', '商洛'] },
+            { name: '甘肃', cities: ['兰州', '嘉峪关', '金昌', '白银', '天水', '武威', '张掖', '平凉', '酒泉', '庆阳', '定西', '陇南',
+                    '临夏回族自治州', '甘南藏族自治州'
+                ] },
+            { name: '青海', cities: ['西宁', '海东', '海北藏族自治州', '黄南藏族自治州', '海南藏族自治州', '果洛藏族自治州', '玉树藏族自治州',
+                    '海西蒙古族藏族自治州'
+                ] },
+            { name: '宁夏', cities: ['银川', '石嘴山', '吴忠', '固原', '中卫'] },
+            { name: '新疆', cities: ['乌鲁木齐', '克拉玛依', '吐鲁番', '哈密', '昌吉回族自治州', '博尔塔拉蒙古自治州', '巴音郭楞蒙古自治州',
+                    '阿克苏地区', '克孜勒苏柯尔克孜自治州', '喀什地区', '和田地区', '伊犁哈萨克自治州', '塔城地区', '阿勒泰地区'
+                ] },
+            { name: '香港', cities: ['香港'] },
+            { name: '澳门', cities: ['澳门'] },
+            { name: '台湾', cities: ['台北', '高雄', '台中', '台南', '基隆', '新竹', '嘉义', '桃园'] }
+        ];
+
+        const weatherCodeMap = {
+            0: { text: '晴', icon: 'wb_sunny' },
+            1: { text: '少云', icon: 'partly_cloudy' },
+            2: { text: '多云', icon: 'wb_cloudy' },
+            3: { text: '阴天', icon: 'cloud' },
+            45: { text: '雾', icon: 'foggy' },
+            48: { text: '雾凇', icon: 'ac_unit' },
+            51: { text: '毛毛雨', icon: 'grain' },
+            53: { text: '中毛毛雨', icon: 'grain' },
+            55: { text: '强毛毛雨', icon: 'umbrella' },
+            56: { text: '冻毛毛雨', icon: 'ac_unit' },
+            57: { text: '强冻毛毛雨', icon: 'ac_unit' },
+            61: { text: '小雨', icon: 'umbrella' },
+            63: { text: '中雨', icon: 'umbrella' },
+            65: { text: '大雨', icon: 'umbrella' },
+            66: { text: '冻雨', icon: 'ac_unit' },
+            67: { text: '强冻雨', icon: 'ac_unit' },
+            71: { text: '小雪', icon: 'ac_unit' },
+            73: { text: '中雪', icon: 'ac_unit' },
+            75: { text: '大雪', icon: 'ac_unit' },
+            77: { text: '霰', icon: 'grain' },
+            80: { text: '阵雨', icon: 'umbrella' },
+            81: { text: '中阵雨', icon: 'umbrella' },
+            82: { text: '强阵雨', icon: 'umbrella' },
+            85: { text: '阵雪', icon: 'ac_unit' },
+            86: { text: '强阵雪', icon: 'ac_unit' },
+            95: { text: '雷暴', icon: 'thunderstorm' },
+            96: { text: '雷暴伴冰雹', icon: 'thunderstorm' },
+            99: { text: '强雷暴', icon: 'thunderstorm' }
+        };
+
+        const weekMap = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+
+        function getWindDirection(deg) {
+            const dirs = ['北', '东北', '东', '东南', '南', '西南', '西', '西北'];
+            return dirs[Math.round(deg / 45) % 8];
+        }
+
+        function getWindScale(speed) {
+            if (speed < 1) return 0;
+            if (speed < 6) return 1;
+            if (speed < 12) return 2;
+            if (speed < 20) return 3;
+            if (speed < 29) return 4;
+            if (speed < 39) return 5;
+            if (speed < 50) return 6;
+            if (speed < 62) return 7;
+            if (speed < 75) return 8;
+            if (speed < 89) return 9;
+            if (speed < 103) return 10;
+            if (speed < 118) return 11;
+            return 12;
+        }
+
+        function getAqiInfo(aqi) {
+            if (aqi <= 50) return { level: '优', bg: 'rgba(34,197,94,0.25)', border: 'rgba(34,197,94,0.35)' };
+            if (aqi <= 100) return { level: '良', bg: 'rgba(59,130,246,0.25)', border: 'rgba(59,130,246,0.35)' };
+            if (aqi <= 150) return { level: '轻度污染', bg: 'rgba(251,146,60,0.25)', border: 'rgba(251,146,60,0.35)' };
+            if (aqi <= 200) return { level: '中度污染', bg: 'rgba(234,88,12,0.25)', border: 'rgba(234,88,12,0.35)' };
+            if (aqi <= 300) return { level: '重度污染', bg: 'rgba(239,68,68,0.25)', border: 'rgba(239,68,68,0.35)' };
+            return { level: '严重污染', bg: 'rgba(168,85,247,0.25)', border: 'rgba(168,85,247,0.35)' };
+        }
+
+        const $ = id => document.getElementById(id);
+        const citySheet = $('citySheet');
+        const citySelectBtn = $('citySelectBtn');
+        const closeSheetBtn = $('closeSheetBtn');
+        const confirmCityBtn = $('confirmCityBtn');
+        const provinceSelect = $('provinceSelect');
+        const citySelect = $('citySelect');
+        const errorToast = $('errorToast');
+        const hourlyScrollContainer = $('hourlyScrollContainer');
+        const hourlyList = $('hourlyList');
+        const tempLinePath = $('tempLinePath');
+        const STORAGE_KEY = 'savedWeatherCity';
+
+        function openSheet() {
+            citySheet.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSheet() {
+            citySheet.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+        citySelectBtn.onclick = openSheet;
+        closeSheetBtn.onclick = closeSheet;
+        citySheet.onclick = (e) => { if (e.target === citySheet) closeSheet(); };
+
+        provinceCityData.forEach(p => {
+            const o = document.createElement('option');
+            o.value = p.name;
+            o.textContent = p.name;
+            provinceSelect.appendChild(o);
+        });
+
+        provinceSelect.onchange = () => {
+            const selected = provinceCityData.find(p => p.name === provinceSelect.value);
+            citySelect.innerHTML = '';
+            if (selected) {
+                selected.cities.forEach(c => {
+                    const o = document.createElement('option');
+                    o.value = c;
+                    o.textContent = c;
+                    citySelect.appendChild(o);
+                });
+            } else {
+                citySelect.innerHTML = '<option value="">请先选择省级行政区</option>';
+            }
+        };
+
+        let toastTimer = null;
+
+        function showError(text) {
+            errorToast.innerHTML =
+                `<span class="flex items-center gap-2"><span class="material-icons text-[20px]">error_outline</span>${text}</span>`;
+            errorToast.style.display = 'block';
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => { errorToast.style.display = 'none'; }, 3200);
+        }
+
+        function initCitySelector(cityName) {
+            for (const p of provinceCityData) {
+                if (p.cities.includes(cityName)) {
+                    provinceSelect.value = p.name;
+                    provinceSelect.dispatchEvent(new Event('change'));
+                    setTimeout(() => { citySelect.value = cityName; }, 20);
+                    return;
+                }
+            }
+        }
+
+        async function getCityLocation(cityName) {
+            const res = await fetch(
+                `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName)}&language=zh&count=1`
+            );
+            const data = await res.json();
+            if (!data.results || data.results.length === 0) throw new Error('无该城市地理数据');
+            return {
+                lat: data.results[0].latitude,
+                lon: data.results[0].longitude,
+                name: data.results[0].name
+            };
+        }
+
+        async function fetchWeatherData(lat, lon) {
+            const [weatherRes, airRes] = await Promise.all([
+                fetch(
+                    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,surface_pressure,wind_speed_10m,wind_direction_10m&hourly=temperature_2m,weather_code,wind_speed_10m,wind_direction_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&forecast_hours=24&timezone=Asia/Shanghai`
+                ),
+                fetch(
+                    `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&hourly=european_aqi&timezone=Asia/Shanghai`
+                )
+            ]);
+            return { weather: await weatherRes.json(), air: await airRes.json() };
+        }
+
+        function render24HourForecast(hourlyData, aqiData) {
+            const currentHour = new Date().getHours();
+            const total = 24;
+            const itemW = 50;
+            const svgW = total * itemW;
+            const svgH = 60;
+            const pad = 10;
+            const availH = svgH - pad * 2;
+
+            const temps = hourlyData.temperature_2m.map(t => Math.round(t));
+            const maxT = Math.max(...temps);
+            const minT = Math.min(...temps);
+            const range = maxT - minT || 1;
+
+            let pathD = '';
+            const pts = [];
+            for (let i = 0; i < total; i++) {
+                const x = i * itemW + itemW / 2;
+                const p = (temps[i] - minT) / range;
+                const y = svgH - pad - p * availH;
+                pts.push({ x, y });
+                if (i === 0) pathD = `M ${x} ${y}`;
+                else {
+                    const px = pts[i - 1].x,
+                        py = pts[i - 1].y;
+                    const cx = (px + x) / 2;
+                    pathD += ` C ${cx} ${py}, ${cx} ${y}, ${x} ${y}`;
+                }
+            }
+            tempLinePath.setAttribute('d', pathD);
+            tempLinePath.setAttribute('width', svgW);
+
+            hourlyList.innerHTML = '';
+            let currentIdx = 0;
+
+            for (let i = 0; i < total; i++) {
+                const time = new Date(hourlyData.time[i] + '+08:00');
+                const hour = time.getHours();
+                const isCurrent = hour === currentHour;
+                if (isCurrent) currentIdx = i;
+
+                const temp = temps[i];
+                const wInfo = weatherCodeMap[hourlyData.weather_code[i]] || weatherCodeMap[3];
+                const ws = getWindScale(hourlyData.wind_speed_10m[i]);
+                const aqi = Math.round(aqiData.european_aqi[i] || 0);
+                const aqiInfo = getAqiInfo(aqi);
+                const label = isCurrent ? '当前' : `${String(hour).padStart(2, '0')}:00`;
+
+                const el = document.createElement('div');
+                el.className =
+                    'hour-item flex flex-col items-center justify-between h-full hour-item-width relative cursor-default';
+                el.innerHTML = `
+              <span class="text-sm font-medium absolute left-1/2 -translate-x-1/2 z-20" style="top: ${pts[i].y}px">${temp}°</span>
+              <div class="relative w-full h-[60px] mt-[25px]">
+                ${isCurrent ? `
+                  <div class="absolute w-3.5 h-3.5 bg-white border-2 border-[#FFCE00] rounded-full z-10 current-dot" style="top: ${pts[i].y}px; left: 50%; transform: translate(-50%, -50%);"></div>
+                  <div class="absolute w-px border-dashed border-white/50 border-l z-0" style="top: ${pts[i].y + 4}px; left: 50%; bottom: 0;"></div>
+                ` : ''}
+              </div>
+              <span class="material-icons text-white/95 text-[22px] mb-0.5">${wInfo.icon}</span>
+              <span class="text-xs text-white/80 mb-0.5">${ws}级</span>
+              <span class="text-[11px] font-medium text-white/90 mb-0.5">${aqiInfo.level}</span>
+              <span class="text-[11px] text-white/70">${label}</span>
+            `;
+                hourlyList.appendChild(el);
+            }
+
+            setTimeout(() => {
+                const target = currentIdx * itemW - hourlyScrollContainer.clientWidth / 2 + itemW / 2;
+                hourlyScrollContainer.scrollTo({ left: Math.max(0, target), behavior: 'smooth' });
+            }, 120);
+        }
+
+        function renderWeather(cityName, data) {
+            const { weather, air } = data;
+            const cur = weather.current;
+            const daily = weather.daily;
+            const hourly = weather.hourly;
+            const hourlyAqi = air.hourly;
+
+            document.getElementById('cityName').textContent = cityName;
+            const now = new Date();
+            document.getElementById('dateText').textContent =
+                `${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}  ${weekMap[now.getDay()]}`;
+            document.getElementById('updateTip').textContent =
+                `更新 ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+            const wInfo = weatherCodeMap[cur.weather_code] || weatherCodeMap[3];
+            document.getElementById('currentTemp').textContent = `${Math.round(cur.temperature_2m)}°`;
+            document.getElementById('weatherDesc').innerHTML =
+                `<span class="material-icons text-3xl">${wInfo.icon}</span> ${wInfo.text}`;
+            document.getElementById('todayTempRange').textContent =
+                `${Math.round(daily.temperature_2m_min[0])}° / ${Math.round(daily.temperature_2m_max[0])}°`;
+
+            document.getElementById('feelsLike').textContent = `体感温度 ${Math.round(cur.apparent_temperature)}°`;
+            document.getElementById('humidity').textContent = `湿度 ${cur.relative_humidity_2m}%`;
+            document.getElementById('pressure').textContent = `${Math.round(cur.surface_pressure)} hPa`;
+            document.getElementById('windInfo').textContent =
+                `${getWindDirection(cur.wind_direction_10m)}风 ${getWindScale(cur.wind_speed_10m)}级`;
+
+            const sr = daily.sunrise[0];
+            const ss = daily.sunset[0];
+            document.getElementById('sunrise').textContent = sr ? sr.split('T')[1] : '--:--';
+            document.getElementById('sunset').textContent = ss ? ss.split('T')[1] : '--:--';
+            document.getElementById('uvIndex').textContent = `${Math.round(daily.uv_index_max[0] || 0)}级`;
+
+            const aqiVal = Math.round(hourlyAqi.european_aqi[0] || 0);
+            const aqiInfo = getAqiInfo(aqiVal);
+            const aqiCard = document.getElementById('aqiCard');
+            aqiCard.style.background = aqiInfo.bg;
+            aqiCard.style.borderColor = aqiInfo.border;
+            aqiCard.textContent = `AQI ${aqiVal} · ${aqiInfo.level}`;
+
+            render24HourForecast(hourly, hourlyAqi);
+
+            const fc = document.getElementById('forecastContainer');
+            fc.innerHTML = '';
+            daily.time.forEach((date, idx) => {
+                const dw = weatherCodeMap[daily.weather_code[idx]] || weatherCodeMap[3];
+                const label = idx === 0 ? '今日' : weekMap[new Date(date).getDay()];
+                const maxT = Math.round(daily.temperature_2m_max[idx]);
+                const minT = Math.round(daily.temperature_2m_min[idx]);
+                const row = document.createElement('div');
+                row.className = 'forecast-row flex items-center justify-between py-1.5';
+                row.innerHTML = `
+              <span class="w-14 font-medium text-sm">${label}</span>
+              <div class="flex items-center gap-2 flex-1">
+                <span class="material-icons text-[20px]">${dw.icon}</span>
+                <span class="text-white/80 text-sm">${dw.text}</span>
+              </div>
+              <span class="font-medium text-sm">${minT}° / ${maxT}°</span>
+            `;
+                fc.appendChild(row);
+            });
+        }
+
+        async function loadWeather(cityName) {
+            try {
+                document.getElementById('updateTip').textContent = '正在获取气象观测数据 ...';
+                const loc = await getCityLocation(cityName);
+                const data = await fetchWeatherData(loc.lat, loc.lon);
+                renderWeather(loc.name, data);
+                document.getElementById('updateTip').textContent =
+                    `更新 ${new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}`;
+            } catch (err) {
+                console.error(err);
+                showError('气象数据加载失败，请检查网络后重试');
+                document.getElementById('updateTip').textContent = '数据获取失败';
+            }
+        }
+
+        confirmCityBtn.onclick = () => {
+            const city = citySelect.value;
+            if (!city) return showError('请选择城市');
+            localStorage.setItem(STORAGE_KEY, city);
+            closeSheet();
+            loadWeather(city);
+        };
+
+        window.onload = () => {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                loadWeather(saved);
+                initCitySelector(saved);
+            } else {
+                loadWeather('北京');
+                openSheet();
+            }
+        };
+    </script>
+
+</body>
+</html>
