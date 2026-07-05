@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 安全防护核心配置 -->
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <title>冬月浅雪的个人网站</title>
+    <!-- 网站图标 -->
+    <link rel="shortcut icon" href="http://q.qlogo.cn/headimg_dl?dst_uin=344478428&spec=640&img_type=jpg" type="image/jpg">
+    <link rel="icon" href="http://q.qlogo.cn/headimg_dl?dst_uin=344478428&spec=640&img_type=jpg" type="image/jpg">
+    <!-- 字体与图标资源预连接 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* 全局动画关键帧 */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes bgFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @keyframes sweep {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        @keyframes textShine {
+            0% { background-position: 0% center; }
+            100% { background-position: 200% center; }
+        }
+        @keyframes avatarBreath {
+            0%, 100% { box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); }
+            50% { box-shadow: 0 8px 24px rgba(25, 118, 210, 0.2); }
+        }
+        /* 全局样式重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+        /* 页面基础样式 */
+        body {
+            background: linear-gradient(120deg, #fafafa, #f0f7ff, #fafafa);
+            background-size: 200% 200%;
+            animation: bgFlow 18s ease infinite;
+            color: #1d1d1f;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px;
+            position: relative;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+        }
+        /* 头部个人信息区域 */
+        header {
+            text-align: center;
+            margin-bottom: 36px;
+            padding: 24px 24px 12px 24px;
+        }
+        /* 头像容器 */
+        .avatar-link {
+            display: inline-block;
+            margin-bottom: 16px;
+            border-radius: 50%;
+            overflow: hidden;
+            width: 104px;
+            height: 104px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            border: 4px solid white;
+            background: #ffffff;
+            position: relative;
+            z-index: 1;
+            animation: fadeInUp 0.6s ease forwards, avatarBreath 4s ease-in-out infinite;
+            opacity: 0;
+        }
+        .avatar-link:hover {
+            transform: scale(1.06);
+            box-shadow: 0 12px 32px rgba(25, 118, 210, 0.25);
+        }
+        .avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        /* 标题与用户名样式 */
+        h1 {
+            font-size: 2.75rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+            background: linear-gradient(90deg, #1976D2, #42a5f5, #1976D2);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: 1.5px;
+            animation: fadeInUp 0.6s ease 0.2s forwards;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        h1:hover {
+            animation: textShine 2s linear infinite, fadeInUp 0.6s ease 0.2s forwards;
+        }
+        .username {
+            font-size: 1.45rem;
+            color: #1976D2;
+            font-weight: 400;
+            margin-bottom: 12px;
+            background: #e3f2fd;
+            padding: 8px 20px;
+            border-radius: 28px;
+            display: inline-block;
+            border: 1px solid #bbdefb;
+            box-shadow: 0 2px 4px rgba(25, 118,210,0.08);
+            transition: background 0.2s ease;
+            animation: fadeInUp 0.6s ease 0.4s forwards;
+            opacity: 0;
+        }
+        .username:hover {
+            background: #d1e7dd;
+        }
+        .subtitle {
+            font-size: 1.15rem;
+            color: #5f6368;
+            font-weight: 300;
+            margin-top: 8px;
+            letter-spacing: 0.5px;
+            display: block; /* 核心修复：替换inline-block为block */
+            animation: fadeInUp 0.6s ease 0.6s forwards;
+            opacity: 0;
+        }
+        /* 内容卡片通用样式 */
+        .card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 4px 8px rgba(0, 0, 0, 0.08);
+            padding: 28px;
+            margin-bottom: 28px;
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            border-top: 5px solid #1976D2;
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+        }
+        .card.animate {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+        /* 卡片hover扫光效果 */
+        .card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+            transform: skewX(-25deg);
+            z-index: 1;
+            pointer-events: none;
+        }
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1), 0 12px 24px rgba(25, 118, 210, 0.08);
+        }
+        .card:hover::after {
+            animation: sweep 0.8s ease forwards;
+        }
+        .card-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            color: #1976D2;
+            font-size: 1.35rem;
+            font-weight: 500;
+            position: relative;
+            z-index: 2;
+        }
+        .card-title h2 {
+            font-size: inherit;
+            font-weight: inherit;
+            margin: 0;
+        }
+        .card-title i {
+            margin-right: 16px;
+            font-size: 28px;
+            width: 28px;
+            text-align: center;
+        }
+        .card-content {
+            color: #3c4043;
+            font-size: 1.15rem;
+            line-height: 1.8;
+            padding-left: 44px;
+            position: relative;
+            z-index: 2;
+        }
+        /* 社交链接区域 */
+        .social-section {
+            margin: 48px 0;
+        }
+        .social-title {
+            text-align: center;
+            margin-bottom: 32px;
+            color: #1976D2;
+            font-size: 1.45rem;
+            font-weight: 500;
+            letter-spacing: 1.2px;
+            position: relative;
+        }
+        .social-title::after {
+            content: '';
+            width: 48px;
+            height: 3px;
+            background: #1976D2;
+            border-radius: 3px;
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .social-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 36px;
+            flex-wrap: wrap;
+        }
+        /* 社交按钮样式 */
+        .social-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #3c4043;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            width: 128px;
+            padding: 8px;
+            border-radius: 20px;
+            opacity: 0;
+        }
+        .social-button.animate {
+            animation: fadeInUp 0.6s ease 0.1s forwards;
+        }
+        .social-button:hover {
+            transform: scale(1.07);
+            color: #1976D2;
+            background: rgba(25, 118, 210, 0.05);
+        }
+        .social-icon {
+            width: 88px;
+            height: 88px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08), inset 0 1px 2px rgba(255,255,255,0.8);
+            background: white;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+        .social-icon i {
+            font-size: 36px;
+            transition: transform 0.2s ease;
+        }
+        .social-button:hover .social-icon i {
+            transform: scale(1.1) rotate(6deg);
+        }
+        .social-name {
+            font-size: 1.15rem;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+        .social-desc {
+            font-size: 0.95rem;
+            color: #5f6368;
+        }
+        /* B站按钮专属配色 */
+        .bilibili .social-icon {
+            background: #FB7299;
+            color: white;
+            box-shadow: 0 4px 12px rgba(251,114,153,0.2), inset 0 1px 2px rgba(255,255,255,0.2);
+        }
+        /* 页脚样式 */
+        footer {
+            margin-top: 48px;
+            text-align: center;
+            padding: 24px;
+            color: #757575;
+            font-size: 0.9rem;
+            width: 100%;
+            border-top: 1px solid #e8e8e8;
+            border-radius: 24px 24px 0 0;
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(8px);
+            animation: fadeInUp 0.6s ease 0.8s forwards;
+            opacity: 0;
+        }
+        .footer-content {
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 2;
+        }
+        /* 链接通用样式 */
+        a {
+            color: #1976D2;
+            text-decoration: none;
+            position: relative;
+        }
+        a::after {
+            content: '';
+            width: 0;
+            height: 2px;
+            background: #1976D2;
+            border-radius: 2px;
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            transition: width 0.3s ease;
+        }
+        a:hover::after {
+            width: 100%;
+        }
+        /* ICP链接专属样式 */
+        .icp-pink {
+            color: #ff69b4 !important;
+        }
+        .icp-pink::after {
+            background: #ff69b4 !important;
+        }
+        /* 访问统计图片样式 */
+        .stats-img {
+            border: none;
+            max-width: 100%;
+            height: auto;
+            margin-top: 8px;
+            opacity: 0;
+            transform: scale(0.95);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        .stats-img.loaded {
+            opacity: 1;
+            transform: scale(1);
+        }
+        /* 移动端响应式适配 */
+        @media (max-width: 600px) {
+            body { padding: 16px; }
+            .social-buttons {
+                flex-direction: column;
+                align-items: center;
+                gap: 24px;
+            }
+            .card {
+                padding: 24px;
+                margin-bottom: 24px;
+            }
+            h1 { font-size: 2.25rem; }
+            .avatar-link {
+                width: 88px;
+                height: 88px;
+            }
+            .social-button {
+                width: 100%;
+                flex-direction: row;
+                justify-content: flex-start;
+                padding: 16px 24px;
+                border-radius: 24px;
+                background: white;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            }
+            .social-icon {
+                width: 56px;
+                height: 56px;
+                margin-bottom: 0;
+                margin-right: 20px;
+            }
+            .social-icon i { font-size: 28px; }
+            .social-text { text-align: left; }
+            .card-content {
+                padding-left: 36px;
+                font-size: 1.1rem;
+            }
+            .subtitle { font-size: 1rem; }
+        }
+        /* 无障碍适配：系统减少动画设置 */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部个人信息 -->
+        <header>
+            <a href="http://q.qlogo.cn/headimg_dl?dst_uin=344478428&spec=640&img_type=jpg" class="avatar-link" target="_blank" title="点击查看头像原图" rel="noopener noreferrer">
+                <img class="avatar-img" 
+                     src="http://q.qlogo.cn/headimg_dl?dst_uin=344478428&spec=640&img_type=jpg" 
+                     alt="冬月浅雪 头像" 
+                     onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDQgMTA0Ij48cmVjdCB3aWR0aD0iMTA0IiBoZWlnaHQ9IjEwNCIgcng9IjUyIiBmaWxsPSIjMTk3NkQyIi8+PHBhdGggZD0iTTUyIDUyYTE2IDE2IDAgMSAwIDAtMzIgMTYgMTYgMCAwIDAgMCAzMnptMCA4Yy0xMy4yNSAwLTI0IDEwLjc1LTI0IDI0djRoNDh2LTRjMC0xMy4yNS0xMC43NS0yNC0yNC0yNHoiIGZpbGw9IndoaXRlIi8+PC9zdmc+';">
+            </a>
+            <h1>Wintermoon</h1>
+            <div class="username">冬月浅雪</div>
+            <p class="subtitle">唯冬拥雪，唯月黑夜</p>
+        </header>
+        <!-- 主体内容区 -->
+        <main>
+            <!-- 个人简介卡片 -->
+            <div class="card">
+                <div class="card-title">
+                    <i class="material-icons">person</i>
+                    <h2>个人简介</h2>
+                </div>
+                <div class="card-content">
+                    <p>冬雪社社长<br>B站小UP</p>
+                </div>
+            </div>
+            <!-- 爱好卡片 -->
+            <div class="card">
+                <div class="card-title">
+                    <i class="material-icons">favorite</i>
+                    <h2>爱好</h2>
+                </div>
+                <div class="card-content">
+                    <p>游戏<br>水群</p>
+                </div>
+            </div>
+            <!-- 邮箱卡片 -->
+            <div class="card">
+                <div class="card-title">
+                    <i class="material-icons">email</i>
+                    <h2>电子邮箱</h2>
+                </div>
+                <div class="card-content">
+                    <p id="email-box"></p>
+                </div>
+            </div>
+            <!-- 社交链接区 -->
+            <div class="social-section">
+                <h2 class="social-title">我的链接</h2>
+                <div class="social-buttons">
+                    <a href="https://b23.tv/yBfkY2Q" class="social-button bilibili" target="_blank" rel="noopener noreferrer">
+                        <div class="social-icon">
+                            <i class="material-icons">play_circle_filled</i>
+                        </div>
+                        <div class="social-text">
+                            <div class="social-name">Bilibili</div>
+                            <div class="social-desc">主页</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </main>
+        <!-- 友情链接卡片 -->
+        <div class="card">
+            <div class="card-title">
+                <i class="material-icons">link</i>
+                友情链接
+            </div>
+            <div class="card-content" style="padding-left: 0; margin-left: 44px;">
+                <ul style="list-style: none; line-height: 2.2;">
+                    <li><a href="https://wintersnow.neox.lol/" target="_blank" rel="noopener noreferrer">冬雪社</a></li>
+                    <li><a href="https://honjiu.neox.lol/" target="_blank" rel="noopener noreferrer">弘九honjiu的个人网站</a></li>
+                    <li><a href="" target="_blank" rel="noopener noreferrer"></a></li>
+                </ul>
+            </div>
+        </div>
+        <!-- 访问统计卡片 -->
+        <div class="card">
+            <div class="card-title">
+                <i class="material-icons">show_chart</i>
+                访问次数
+            </div>
+            <div class="card-content" style="text-align: center;">
+                <img class="stats-img" 
+                     src="https://count.himiku.com/@siupokg?name=siupokg&theme=moebooru&padding=6&offset=0&align=top&scale=1&pixelated=1&darkmode=auto" 
+                     alt="网站访问计数"
+                     onerror="this.style.display='none';">
+            </div>
+        </div>
+        <!-- 页脚 -->
+        <footer>
+            <div class="foont">
+                <p></p>
+                <p>Copyright © 2026 冬雪社. All rights reserved.</p>
+                <p style="margin-top:8px;">
+                    <a href="https://icp.gov.moe/?keyword=20260180" target="_blank" class="icp-pink" rel="noopener noreferrer">萌ICP备20260180号</a>
+                </p>
+            </div>
+        </footer>
+    </div>
+    <!-- 页面交互脚本 -->
+    <script>
+        (function() {
+            // 邮箱动态生成（反爬处理，避免静态源码暴露邮箱地址）
+            const emailBox = document.getElementById('email-box');
+            const emailPrefix = '344478428';
+            const emailDomain = 'qq.com';
+            const fullEmail = `${emailPrefix}@${emailDomain}`;
+            emailBox.innerHTML = `<a href="mailto:${fullEmail}">${fullEmail}</a>`;
+            // 滚动触发入场动画（IntersectionObserver高性能监听，避免scroll事件性能损耗）
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.1
+            };
+            const animateObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate');
+                        animateObserver.unobserve(entry.target); // 触发一次后取消监听，优化性能
+                    }
+                });
+            }, observerOptions);
+            // 绑定需要动画的元素
+            const animatedElements = document.querySelectorAll('.card, .social-button');
+            animatedElements.forEach(el => animateObserver.observe(el));
+            // 统计图片加载完成动画
+            const statsImg = document.querySelector('.stats-img');
+            if (statsImg) {
+                statsImg.onload = () => statsImg.classList.add('loaded');
+                if (statsImg.complete) statsImg.classList.add('loaded');
+            }
+        })();
+    </script>
+</body>
+</html>
