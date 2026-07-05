@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>生日表 - 冬雪社</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:Microsoft YaHei,sans-serif}
+  body{background:#f5f7fa;color:#333;line-height:1.6}
+  .container{max-width:800px;margin:0 auto;padding:20px}
+
+  header{text-align:center;padding:40px 0}
+  .page-title{font-size:32px;font-weight:700;color:#222;margin-bottom:10px}
+  .today-info{color:#666;font-size:16px}
+
+  .box{
+    background:#fff;
+    padding:25px 30px;
+    margin-bottom:20px;
+    border-radius:8px;
+    box-shadow:0 2px 4px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+  }
+  .box:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+  }
+
+  .box h2{
+    font-size:20px;
+    margin-bottom:15px;
+    color:#111;
+    border-left:4px solid #0066cc;
+    padding-left:10px;
+  }
+  .box p{font-size:16px;line-height:1.8}
+
+  .next-birthday{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:10px 0;
+  }
+  .next-name{font-size:22px;font-weight:700;color:#111}
+  .next-date{color:#666;margin-top:4px}
+  .next-days{
+    text-align:right;
+  }
+  .next-days .num{
+    font-size:36px;
+    font-weight:700;
+    color:#0066cc;
+    line-height:1;
+  }
+  .next-days .label{
+    color:#666;
+    font-size:14px;
+    margin-top:4px;
+  }
+
+  .group-title{
+    font-size:15px;
+    font-weight:600;
+    color:#0066cc;
+    padding:12px 0 8px;
+  }
+  .group-title:first-child{
+    padding-top:0;
+  }
+
+  .birthday-item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:12px 0;
+    border-bottom:1px solid #eee;
+  }
+  .birthday-item.no-border{
+    border-bottom:none;
+  }
+  .item-left .name{font-size:16px;color:#222}
+  .item-left .date{font-size:14px;color:#666;margin-top:2px}
+
+  .countdown-badge{
+    background:#e6f0ff;
+    color:#0066cc;
+    padding:4px 10px;
+    border-radius:4px;
+    font-size:13px;
+    font-weight:500;
+  }
+  .countdown-today{
+    background:#ffe6e6;
+    color:#cc0000;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse{
+    0%,100%{opacity:1}
+    50%{opacity:0.6}
+  }
+
+  .modal-mask{
+    position:fixed;
+    top:0;left:0;right:0;bottom:0;
+    background:rgba(0,0,0,0.4);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:999;
+    opacity:0;
+    visibility:hidden;
+    transition:all 0.25s ease;
+  }
+  .modal-mask.show{
+    opacity:1;
+    visibility:visible;
+  }
+  .modal-box{
+    background:#fff;
+    border-radius:8px;
+    padding:30px 35px;
+    width:320px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.15);
+    text-align:center;
+    transform:scale(0.9);
+    transition:transform 0.25s ease;
+  }
+  .modal-mask.show .modal-box{
+    transform:scale(1);
+  }
+  .modal-title{
+    font-size:20px;
+    font-weight:700;
+    color:#222;
+    margin-bottom:10px;
+  }
+  .modal-text{
+    color:#666;
+    font-size:15px;
+    margin-bottom:25px;
+  }
+  .modal-btn{
+    background:#0066cc;
+    color:#fff;
+    border:none;
+    padding:10px 30px;
+    border-radius:4px;
+    font-size:15px;
+    cursor:pointer;
+    transition:background 0.2s;
+  }
+  .modal-btn:hover{
+    background:#0052a3;
+  }
+
+  footer{
+    text-align:center;
+    padding:20px;
+    color:#666;
+    font-size:14px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="page-title">成员生日表</div>
+    <p class="today-info" id="todayInfo"></p>
+  </header>
+
+  <div class="box">
+    <h2>即将到来</h2>
+    <div class="next-birthday">
+      <div>
+        <div class="next-name" id="nextName">加载中...</div>
+        <div class="next-date" id="nextDateInfo"></div>
+      </div>
+      <div class="next-days">
+        <div class="num" id="nextDays">--</div>
+        <div class="label" id="nextDaysLabel">天后</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="box">
+    <h2>全部生日</h2>
+    <div id="birthdayList"></div>
+  </div>
+</div>
+
+<div class="modal-mask" id="birthdayModal">
+  <div class="modal-box">
+    <div class="modal-title">🎂 生日快乐 🎂</div>
+    <div class="modal-text" id="modalText">今天是 xx 的生日！</div>
+    <button class="modal-btn" onclick="closeModal()">确定</button>
+  </div>
+</div>
+
+<footer>
+  Copyright © 2026 冬雪社. All rights reserved.
+</footer>
+
+<script>
+  const birthdays = [
+    { name: '霞羽 白汐', month: 3, day: 16, lunar: false },
+    { name: '喝汽水的乌鸦', month: 4, day: 8, lunar: false },
+    { name: '云语', month: 4, day: 11, lunar: false },
+    { name: '秋明', month: 5, day: 15, lunar: true },
+    { name: '𝒞𝓁𝒶𝒾𝓇𝑒', month: 7, day: 20, lunar: false },
+    { name: '弘九honjiu', month: 7, day: 31, lunar: false },
+    { name: '小金', month: 8, day: 18, lunar: false },
+    { name: '薄荷糖', month: 9, day: 12, lunar: false },
+    { name: '花开富贵', month: 9, day: 22, lunar: false },
+    { name: '梦露', month: 10, day: 19, lunar: false },
+    { name: '冰糖雪璃', month: 10, day: 19, lunar: false },
+    { name: '羽雫', month: 11, day: 23, lunar: false }
+  ];
+
+  const lunarMay15Map = {
+    2025: '2025-06-10',
+    2026: '2026-06-29',
+    2027: '2027-06-19',
+    2028: '2028-07-07',
+    2029: '2029-06-26',
+    2030: '2030-06-15'
+  };
+
+  function getLunarDate(year, month, day) {
+    if (month === 5 && day === 15 && lunarMay15Map[year]) {
+      return new Date(lunarMay15Map[year]);
+    }
+    return new Date(year, month - 1, day + 30);
+  }
+
+  function getNextBirthday(person) {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    let birthDate = person.lunar
+      ? getLunarDate(currentYear, person.month, person.day)
+      : new Date(currentYear, person.month - 1, person.day);
+
+    if (birthDate < new Date(now.getFullYear(), now.getMonth(), now.getDate())) {
+      birthDate = person.lunar
+        ? getLunarDate(currentYear + 1, person.month, person.day)
+        : new Date(currentYear + 1, person.month - 1, person.day);
+    }
+
+    const diffTime = birthDate.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return { date: birthDate, days: diffDays };
+  }
+
+  function formatDate(date, lunar) {
+    const m = date.getMonth() + 1;
+    const d = date.getDate();
+    return lunar ? `${m}月${d}日（农历）` : `${m}月${d}日`;
+  }
+
+  function showModal(names) {
+    const text = names.length === 1
+      ? `今天是 ${names[0]} 的生日！`
+      : `今天是 ${names.join('、')} 的生日！`;
+    document.getElementById('modalText').textContent = text;
+    document.getElementById('birthdayModal').classList.add('show');
+  }
+
+  function closeModal() {
+    document.getElementById('birthdayModal').classList.remove('show');
+  }
+
+  function renderList() {
+    const listEl = document.getElementById('birthdayList');
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const data = birthdays.map(p => ({ ...p, ...getNextBirthday(p) }))
+      .sort((a, b) => a.days - b.days);
+
+    const thisYear = data.filter(p => p.date.getFullYear() === currentYear);
+    const nextYear = data.filter(p => p.date.getFullYear() === currentYear + 1);
+
+    let html = '';
+
+    if (thisYear.length > 0) {
+      html += '<div class="group-title">今年</div>';
+      thisYear.forEach((p, i) => {
+        const isToday = p.days === 0;
+        const badgeClass = isToday ? 'countdown-badge countdown-today' : 'countdown-badge';
+        const badgeText = isToday ? '🎂 今天 🎂' : `${p.days} 天后`;
+        const borderClass = i === thisYear.length - 1 ? 'no-border' : '';
+        html += `
+          <div class="birthday-item ${borderClass}">
+            <div class="item-left">
+              <div class="name">${p.name}</div>
+              <div class="date">${formatDate(p.date, p.lunar)}</div>
+            </div>
+            <div class="${badgeClass}">${badgeText}</div>
+          </div>
+        `;
+      });
+    }
+
+    if (nextYear.length > 0) {
+      html += '<div class="group-title">明年</div>';
+      nextYear.forEach((p, i) => {
+        const borderClass = i === nextYear.length - 1 ? 'no-border' : '';
+        html += `
+          <div class="birthday-item ${borderClass}">
+            <div class="item-left">
+              <div class="name">${p.name}</div>
+              <div class="date">${formatDate(p.date, p.lunar)}</div>
+            </div>
+            <div class="countdown-badge">${p.days} 天后</div>
+          </div>
+        `;
+      });
+    }
+
+    listEl.innerHTML = html;
+
+    const next = data[0];
+    document.getElementById('nextName').textContent = next.name;
+    document.getElementById('nextDateInfo').textContent = formatDate(next.date, next.lunar);
+    document.getElementById('nextDays').textContent = next.days === 0 ? '今天' : next.days;
+    document.getElementById('nextDaysLabel').style.display = next.days === 0 ? 'none' : 'block';
+
+    document.getElementById('todayInfo').textContent =
+      now.toLocaleDateString('zh-CN', { year:'numeric', month:'long', day:'numeric', weekday:'long' });
+
+    const todayBirthdays = data.filter(p => p.days === 0).map(p => p.name);
+    if (todayBirthdays.length > 0) {
+      setTimeout(() => showModal(todayBirthdays), 300);
+    }
+  }
+
+  renderList();
+</script>
+</body>
+</html>
