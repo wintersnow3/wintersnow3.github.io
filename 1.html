@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>男娘程度总结器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+        body {
+            background-color: #ffe6ec;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .card {
+            background: #ffffff;
+            width: 100%;
+            max-width: 500px;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .title {
+            font-size: 28px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 25px;
+            color: #333;
+        }
+        .title::before,
+        .title::after {
+            content: "🌸";
+            margin: 0 8px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        .input-group label {
+            display: block;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(90deg, #ff8a9a, #b873d9);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .btn:hover {
+            opacity: 0.9;
+        }
+        .result {
+            margin-top: 25px;
+            padding: 25px;
+            background-color: #f5f7fa;
+            border-radius: 8px;
+            text-align: center;
+            display: none;
+        }
+        .star {
+            font-size: 60px;
+            color: #ffcc00;
+            margin-bottom: 10px;
+        }
+        .score {
+            font-size: 36px;
+            font-weight: bold;
+            color: #ff66a3;
+            margin-bottom: 10px;
+        }
+        .level {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        .desc {
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="title">男娘程度总结器</div>
+        <div class="input-group">
+            <label>输入你的名字/ID</label>
+            <input type="text" id="nameInput" placeholder="请输入名字或ID">
+        </div>
+        <button class="btn" onclick="calculate()">测一测我的男娘指数</button>
+        <div class="result" id="result">
+            <div class="star">⭐</div>
+            <div class="score">100分</div>
+            <div class="level">SSS级男娘</div>
+            <div class="desc">完美！你的男娘潜力已经突破天际！✨</div>
+        </div>
+    </div>
+
+    <script>
+        function calculate() {
+            const name = document.getElementById('nameInput').value.trim();
+            if (!name) {
+                alert('请先输入名字或ID');
+                return;
+            }
+
+            let score;
+
+            // 规则
+            if (name.includes('Wintermoon')) {
+                score = 100;
+            } else if (name.includes('honjiu')) {
+                score = 0;
+            } else {
+                // 0~100 随机整数
+                score = Math.floor(Math.random() * 101);
+            }
+
+            // 等级与描述
+            let level, desc;
+            if (score === 100) {
+                level = 'SSS级男娘';
+                desc = '完美！你的男娘潜力已经突破天际！✨';
+            } else if (score >= 90) {
+                level = 'SS级男娘';
+                desc = '绝世可爱，男女通吃的小天使～';
+            } else if (score >= 80) {
+                level = 'S级男娘';
+                desc = '可爱度超标，温柔又迷人～';
+            } else if (score >= 70) {
+                level = 'A级男娘';
+                desc = '气质超棒，很有软萌感哦！';
+            } else if (score >= 60) {
+                level = 'B级男娘';
+                desc = '已经有内味儿了，继续加油～';
+            } else if (score >= 50) {
+                level = 'C级男娘';
+                desc = '中规中矩，潜力不错！';
+            } else if (score >= 30) {
+                level = 'D级男娘';
+                desc = '有点直男，但可以培养～';
+            } else if (score >= 1) {
+                level = 'E级男娘';
+                desc = '男娘细胞几乎没有，纯爷们！';
+            } else {
+                level = '钢铁直男';
+                desc = '铁血硬汉，毫无男娘属性！💪';
+            }
+
+            // 填入结果
+            document.querySelector('#result .score').textContent = score + '分';
+            document.querySelector('#result .level').textContent = level;
+            document.querySelector('#result .desc').textContent = desc;
+            document.getElementById('result').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
